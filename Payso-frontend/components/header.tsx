@@ -1,8 +1,9 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { LogIn, UserPlus, Menu } from 'lucide-react'
+import { LogIn, UserPlus, Menu, LayoutDashboard } from 'lucide-react'
 import { useState } from 'react'
+import Link from 'next/link'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +46,15 @@ export function Header() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3">
+            <Link href="/dashboard">
+              <Button
+                variant="outline"
+                className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white"
+              >
+                <LayoutDashboard className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
+            </Link>
             <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
