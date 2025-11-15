@@ -38,9 +38,44 @@ const nextConfig = {
     const mockPath = path.resolve('./thread-stream-mock.js');
     writeFileSync(mockPath, mockContent);
 
-    // Create empty mock for test modules
+    // Create comprehensive mock for test modules with all viem test functions
+    const testMockContent = `
+      export default {};
+      export const testValueType = () => false;
+      export const dropTransaction = () => {};
+      export const dumpState = () => {};
+      export const getAutomine = () => {};
+      export const getTxpoolContent = () => {};
+      export const getTxpoolStatus = () => {};
+      export const getTxpoolInspect = () => {};
+      export const impersonateAccount = () => {};
+      export const increaseTime = () => {};
+      export const inspectTxpool = () => {};
+      export const loadState = () => {};
+      export const mine = () => {};
+      export const removeBlockTimestampInterval = () => {};
+      export const reset = () => {};
+      export const revert = () => {};
+      export const setAutomine = () => {};
+      export const setBalance = () => {};
+      export const setBlockGasLimit = () => {};
+      export const setBlockTimestampInterval = () => {};
+      export const setCode = () => {};
+      export const setCoinbase = () => {};
+      export const setIntervalMining = () => {};
+      export const setLoggingEnabled = () => {};
+      export const setMinGasPrice = () => {};
+      export const setNextBlockBaseFeePerGas = () => {};
+      export const setNextBlockTimestamp = () => {};
+      export const setNonce = () => {};
+      export const setRpcUrl = () => {};
+      export const setStorageAt = () => {};
+      export const snapshot = () => {};
+      export const stopImpersonatingAccount = () => {};
+    `;
+    
     const testMockPath = path.resolve('./test-mock.js');
-    writeFileSync(testMockPath, 'export default {}; export const testValueType = () => false; export const dropTransaction = () => {}; export const dumpState = () => {};');
+    writeFileSync(testMockPath, testMockContent);
     
     // Completely exclude problematic modules and create aliases
     config.resolve.alias = {
@@ -52,19 +87,59 @@ const nextConfig = {
       'desm': false,
       // Mock motion-dom test imports
       'motion-dom/dist/es/value/types/test.mjs': testMockPath,
-      // Mock viem test imports
+      // Mock ALL viem test action imports
       'viem/_esm/actions/test/dropTransaction.js': testMockPath,
       'viem/_esm/actions/test/dumpState.js': testMockPath,
+      'viem/_esm/actions/test/getAutomine.js': testMockPath,
+      'viem/_esm/actions/test/getTxpoolContent.js': testMockPath,
+      'viem/_esm/actions/test/getTxpoolStatus.js': testMockPath,
+      'viem/_esm/actions/test/getTxpoolInspect.js': testMockPath,
+      'viem/_esm/actions/test/impersonateAccount.js': testMockPath,
+      'viem/_esm/actions/test/increaseTime.js': testMockPath,
+      'viem/_esm/actions/test/inspectTxpool.js': testMockPath,
+      'viem/_esm/actions/test/loadState.js': testMockPath,
+      'viem/_esm/actions/test/mine.js': testMockPath,
+      'viem/_esm/actions/test/removeBlockTimestampInterval.js': testMockPath,
+      'viem/_esm/actions/test/reset.js': testMockPath,
+      'viem/_esm/actions/test/revert.js': testMockPath,
+      'viem/_esm/actions/test/setAutomine.js': testMockPath,
+      'viem/_esm/actions/test/setBalance.js': testMockPath,
+      'viem/_esm/actions/test/setBlockGasLimit.js': testMockPath,
+      'viem/_esm/actions/test/setBlockTimestampInterval.js': testMockPath,
+      'viem/_esm/actions/test/setCode.js': testMockPath,
+      'viem/_esm/actions/test/setCoinbase.js': testMockPath,
+      'viem/_esm/actions/test/setIntervalMining.js': testMockPath,
+      'viem/_esm/actions/test/setLoggingEnabled.js': testMockPath,
+      'viem/_esm/actions/test/setMinGasPrice.js': testMockPath,
+      'viem/_esm/actions/test/setNextBlockBaseFeePerGas.js': testMockPath,
+      'viem/_esm/actions/test/setNextBlockTimestamp.js': testMockPath,
+      'viem/_esm/actions/test/setNonce.js': testMockPath,
+      'viem/_esm/actions/test/setRpcUrl.js': testMockPath,
+      'viem/_esm/actions/test/setStorageAt.js': testMockPath,
+      'viem/_esm/actions/test/snapshot.js': testMockPath,
+      'viem/_esm/actions/test/stopImpersonatingAccount.js': testMockPath,
+      // Mock the test decorator file itself
+      'viem/_esm/clients/decorators/test.js': testMockPath,
     };
     
-    // Ignore loader for test files
+    // Ignore loader for test files - must come BEFORE other rules
+    config.module.rules.unshift({
+      test: /node_modules\/@reown\/.*\/node_modules\/@walletconnect\/.*\/node_modules\/viem\/_esm\/clients\/decorators\/test\.js$/,
+      use: 'ignore-loader',
+    });
+
+    config.module.rules.unshift({
+      test: /node_modules\/@reown\/.*\/node_modules\/@walletconnect\/.*\/node_modules\/viem\/_esm\/actions\/test\//,
+      use: 'ignore-loader',
+    });
+
     config.module.rules.unshift({
       test: /node_modules\/(motion-dom|framer-motion)\/.*\/test\.mjs$/,
       use: 'ignore-loader',
     });
 
     config.module.rules.unshift({
-      test: /node_modules\/viem\/.*\/test\//,
+      test: /node_modules\/.*\/viem\/_esm\/(actions|clients)\/test\//,
       use: 'ignore-loader',
     });
     
