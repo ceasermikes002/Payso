@@ -4,13 +4,14 @@ import { useAccount } from 'wagmi'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
 import { EmployerDashboard } from '@/components/dashboard/employer-dashboard'
 import { EmployeeDashboard } from '@/components/dashboard/employee-dashboard'
-import { useEmployer } from '@/lib/contracts/hooks/usePayrollEscrow'
+import { useEmployer, useIsAuthorizedEmployer } from '@/lib/contracts/hooks/usePayrollEscrow'
 
 export default function PaymentsPage() {
   const { address, isConnected } = useAccount()
   const { data: employer } = useEmployer()
+  const { data: isAuthorized } = useIsAuthorizedEmployer(address || '0x0000000000000000000000000000000000000000')
 
-  const isEmployer = address && employer && address.toLowerCase() === (employer as string).toLowerCase()
+  const isEmployer = address && employer && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized)
 
   return (
     <DashboardLayout>

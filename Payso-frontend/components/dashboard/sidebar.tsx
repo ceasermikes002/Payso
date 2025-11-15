@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAccount, useDisconnect } from 'wagmi'
 import { formatAddress } from '@/lib/utils'
-import { useEmployer } from '@/lib/contracts/hooks/usePayrollEscrow'
+import { useEmployer, useIsAuthorizedEmployer } from '@/lib/contracts/hooks/usePayrollEscrow'
 import { usePathname } from 'next/navigation'
 
 const employerNavItems = [
@@ -32,6 +32,7 @@ export function Sidebar() {
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const { data: employer } = useEmployer()
+  const { data: isAuthorized } = useIsAuthorizedEmployer(address || '0x0000000000000000000000000000000000000000')
   const pathname = usePathname()
   
   // Prevent hydration mismatch by ensuring client-side only rendering
@@ -41,7 +42,18 @@ export function Sidebar() {
     setIsClient(true)
   }, [])
   
-  const isEmployer = address && employer && typeof employer === 'string' && address.toLowerCase() === (employer as string).toLowerCase()
+  // Debug logging
+  useEffect(() => {
+    console.log('=== SIDEBAR DEBUG ===')
+    console.log('Connected address:', address)
+    console.log('Contract employer:', employer)
+    console.log('Is authorized:', isAuthorized)
+    console.log('Address comparison:', address && employer && typeof employer === 'string' && address.toLowerCase() === (employer as string).toLowerCase())
+    console.log('Final isEmployer:', address && employer && typeof employer === 'string' && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized))
+    console.log('=====================')
+  }, [address, employer, isAuthorized])
+  
+  const isEmployer = address && employer && typeof employer === 'string' && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized)
   const userRole = isEmployer ? 'Employer' : 'Employee'
   const displayAddress = address ? formatAddress(address) : 'Not connected'
   const navItems = isClient && isEmployer ? employerNavItems : employeeNavItems

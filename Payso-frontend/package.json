@@ -2,9 +2,10 @@
   "name": "payso",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "build": "next build --webpack",
-    "dev": "next dev",
+    "build": "next build --turbopack",
+    "dev": "next dev --turbopack",
     "lint": "eslint .",
     "start": "next start"
   },

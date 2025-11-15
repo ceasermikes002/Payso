@@ -12,6 +12,8 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@rainbow-me/rainbowkit', 'wagmi', 'viem', 'framer-motion', '@reown/appkit', '@walletconnect'],
   },
+  // Configure Turbopack compatibility
+  turbopack: {},
   webpack: (config) => {
     // Add comprehensive test file exclusions
     const testPatterns = [

@@ -14,7 +14,7 @@ export const config = getDefaultConfig({
   projectId,
   chains: [arcTestnet],
   transports: {
-    [arcTestnet.id]: http('https://rpc.testnet.arc.network'),
+    [arcTestnet.id]: http(process.env.NEXT_PUBLIC_ARC_RPC_URL || 'https://rpc.testnet.arc.network'),
   },
   // Add ssr: true to prevent hydration issues
   ssr: true,
