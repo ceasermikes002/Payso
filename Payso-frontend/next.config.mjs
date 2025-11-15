@@ -1,5 +1,6 @@
 import webpackConfig from './webpack.config.js';
 import path from 'path';
+import { writeFileSync } from 'fs';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -23,7 +24,10 @@ const nextConfig = {
                 'tap',
                 'tape', 
                 'why-is-node-running',
-                'desm'
+                'desm',
+                'testActions',
+                './decorators/test.js',
+                './clients/decorators/test.js'
               ];
               
               for (const module of problematicModules) {
@@ -41,43 +45,92 @@ const nextConfig = {
     
     config.plugins.push(new ExcludeProblematicModulesPlugin());
     
-    // Completely exclude thread-stream and related test packages
+    // Mock file for thread-stream
+    const mockContent = `
+      export const createWriteStream = () => ({
+        write: () => {},
+        end: () => {},
+        on: () => {},
+        once: () => {},
+        emit: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        removeAllListeners: () => {},
+        setMaxListeners: () => {},
+        getMaxListeners: () => 10,
+        listeners: () => [],
+                        rawListeners: () => [],
+                        emit: () => false,
+                        listenerCount: () => 0,
+                        prependListener: () => {},
+                        prependOnceListener: () => {},
+                        eventNames: () => []
+      });
+      export default { createWriteStream };
+    `;
+    
+    // Write mock file
+    const mockPath = path.resolve('./thread-stream-mock.js');
+    writeFileSync(mockPath, mockContent);
+    
+    // Completely exclude problematic modules and create aliases
     config.resolve.alias = {
       ...config.resolve.alias,
-      'thread-stream': path.resolve('./thread-stream-mock.js'),
+      'thread-stream': mockPath,
       'tap': false,
       'tape': false,
       'why-is-node-running': false,
       'desm': false,
+      // Mock testActions imports
+      'testActions': false,
+      './decorators/test.js': false,
+      './clients/decorators/test.js': false,
+      // Mock viem test imports
+      '@reown/appkit-controllers/node_modules/@walletconnect/utils/node_modules/viem/_esm/clients/decorators/test.js': false,
+      '@walletconnect/utils/node_modules/viem/_esm/clients/decorators/test.js': false,
+      'viem/_esm/clients/decorators/test.js': false,
     };
     
-    // Add module rules to exclude problematic packages
-    config.module.rules.unshift({
-      test: /node_modules\/thread-stream/,
-      use: 'ignore-loader',
+    // Add comprehensive module rules to exclude problematic packages
+    const ignorePatterns = [
+      /node_modules\/thread-stream/,
+      /node_modules\/tap/,
+      /node_modules\/tape/,
+      /node_modules\/why-is-node-running/,
+      /node_modules\/desm/,
+      // WalletConnect and Viem test files
+      /node_modules\/@reown\/.*\/test\./,
+      /node_modules\/@walletconnect\/.*\/test\./,
+      /node_modules\/viem\/.*\/test\./,
+      /node_modules\/.*\/test\.js$/,
+      /node_modules\/.*\/test\.mjs$/,
+      /node_modules\/.*\/test\.ts$/,
+      // Specific test decorator files
+      /clients\/decorators\/test\.js$/,
+      /clients\/decorators\/test\.mjs$/,
+      /clients\/decorators\/test\.ts$/,
+      /_esm\/clients\/decorators\/test\.js$/,
+      /_esm\/clients\/decorators\/test\.mjs$/,
+      /_esm\/clients\/decorators\/test\.ts$/,
+      // Test actions
+      /testActions/,
+      /test-actions/,
+      // Test directories
+      /\/test\//,
+      /\/tests\//,
+      /\/__tests__\//,
+      /\/spec\//,
+      /\/specs\//
+    ];
+    
+    ignorePatterns.forEach(pattern => {
+      config.module.rules.unshift({
+        test: pattern,
+        use: 'ignore-loader',
+      });
     });
     
-    config.module.rules.unshift({
-      test: /node_modules\/tap/,
-      use: 'ignore-loader',
-    });
-    
-    config.module.rules.unshift({
-      test: /node_modules\/tape/,
-      use: 'ignore-loader',
-    });
-    
-    config.module.rules.unshift({
-      test: /node_modules\/why-is-node-running/,
-      use: 'ignore-loader',
-    });
-    
-    config.module.rules.unshift({
-      test: /node_modules\/desm/,
-      use: 'ignore-loader',
-    });
-    
-    // Fix WalletConnect/Viem import errors by ignoring test decorators
+    // Add specific rules for problematic Web3 imports
     config.module.rules.unshift({
       test: /node_modules\/@reown\/appkit-controllers\/node_modules\/@walletconnect\/utils\/node_modules\/viem\/.*\/test\.js$/,
       use: 'ignore-loader',
@@ -88,13 +141,11 @@ const nextConfig = {
       use: 'ignore-loader',
     });
     
-    // Add specific rule for viem test imports
     config.module.rules.unshift({
       test: /viem\/.*\/test\.js$/,
       use: 'ignore-loader',
     });
     
-    // Add rule for test decorator files
     config.module.rules.unshift({
       test: /clients\/decorators\/test\.js$/,
       use: 'ignore-loader',

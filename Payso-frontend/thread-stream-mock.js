@@ -1,11 +1,22 @@
-// Mock implementation for thread-stream to avoid build issues
-module.exports = function threadStream() {
-  return {
-    write: function() {},
-    end: function() {},
-    on: function() { return this; },
-    once: function() { return this; },
-    emit: function() { return this; },
-    destroy: function() { return this; }
-  };
-};
+
+      export const createWriteStream = () => ({
+        write: () => {},
+        end: () => {},
+        on: () => {},
+        once: () => {},
+        emit: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        removeAllListeners: () => {},
+        setMaxListeners: () => {},
+        getMaxListeners: () => 10,
+        listeners: () => [],
+                        rawListeners: () => [],
+                        emit: () => false,
+                        listenerCount: () => 0,
+                        prependListener: () => {},
+                        prependOnceListener: () => {},
+                        eventNames: () => []
+      });
+      export default { createWriteStream };
+    
