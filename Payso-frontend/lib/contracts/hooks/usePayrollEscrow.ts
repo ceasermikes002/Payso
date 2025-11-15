@@ -127,3 +127,64 @@ export function useEmployer() {
     functionName: 'employer',
   })
 }
+
+export function useIsAuthorizedEmployer(address: Address) {
+  return useReadContract({
+    address: CONTRACT_ADDRESSES.PayrollEscrow,
+    abi: PayrollEscrowABI,
+    functionName: 'isAuthorizedEmployer',
+    args: [address],
+  })
+}
+
+export function useAddAuthorizedEmployer() {
+  const { writeContract, data: hash, error, isPending } = useWriteContract()
+  
+  const { data: receipt, isLoading: isConfirming } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  const addAuthorizedEmployer = async (newEmployer: Address) => {
+    writeContract({
+      address: CONTRACT_ADDRESSES.PayrollEscrow,
+      abi: PayrollEscrowABI,
+      functionName: 'addAuthorizedEmployer',
+      args: [newEmployer],
+    })
+  }
+
+  return {
+    addAuthorizedEmployer,
+    hash,
+    receipt,
+    error,
+    isPending,
+    isConfirming,
+  }
+}
+
+export function useRemoveAuthorizedEmployer() {
+  const { writeContract, data: hash, error, isPending } = useWriteContract()
+  
+  const { data: receipt, isLoading: isConfirming } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  const removeAuthorizedEmployer = async (employerToRemove: Address) => {
+    writeContract({
+      address: CONTRACT_ADDRESSES.PayrollEscrow,
+      abi: PayrollEscrowABI,
+      functionName: 'removeAuthorizedEmployer',
+      args: [employerToRemove],
+    })
+  }
+
+  return {
+    removeAuthorizedEmployer,
+    hash,
+    receipt,
+    error,
+    isPending,
+    isConfirming,
+  }
+}

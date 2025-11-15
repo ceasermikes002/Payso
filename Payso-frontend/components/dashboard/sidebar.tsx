@@ -41,7 +41,7 @@ export function Sidebar() {
     setIsClient(true)
   }, [])
   
-  const isEmployer = address && employer && typeof employer === 'string' && address.toLowerCase() === employer.toLowerCase()
+  const isEmployer = address && employer && typeof employer === 'string' && address.toLowerCase() === (employer as string).toLowerCase()
   const userRole = isEmployer ? 'Employer' : 'Employee'
   const displayAddress = address ? formatAddress(address) : 'Not connected'
   const navItems = isClient && isEmployer ? employerNavItems : employeeNavItems

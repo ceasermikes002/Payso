@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { Calendar, HelpCircle } from 'lucide-react'
-import { usePayrollEscrow, useEmployer } from '@/lib/contracts/hooks/usePayrollEscrow'
+import { usePayrollEscrow, useEmployer, useIsAuthorizedEmployer } from '@/lib/contracts/hooks/usePayrollEscrow'
 import { useApproveToken } from '@/lib/contracts/hooks/useToken'
 import { CONTRACT_ADDRESSES, STABLECOIN_ADDRESSES, STABLECOIN_SYMBOLS } from '@/lib/contracts/config'
 import { formatTokenAmount, parseTokenAmount } from '@/lib/contracts/utils'
@@ -27,6 +27,7 @@ export function EmployerDashboard() {
   const { depositAndSchedule, isPending, isConfirming } = usePayrollEscrow()
   const { approve, isPending: isApproving } = useApproveToken()
   const { data: employer } = useEmployer()
+  const { data: isAuthorized } = useIsAuthorizedEmployer(address || '0x0')
 
   // Set default release date to tomorrow and time to 9:00 AM for better UX
   const getDefaultDateTime = () => {
@@ -55,7 +56,7 @@ export function EmployerDashboard() {
   // Amount validation state
   const [amountError, setAmountError] = useState('')
 
-  const isEmployer = address && employer && address.toLowerCase() === (employer as string).toLowerCase()
+  const isEmployer = address && (isAuthorized === true || (employer && address.toLowerCase() === (employer as string).toLowerCase()))
 
   // Custom date picker state
   const [showCalendar, setShowCalendar] = useState(false)

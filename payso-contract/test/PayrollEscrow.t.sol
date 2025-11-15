@@ -501,5 +501,158 @@ contract PayrollEscrowTest is Test {
         uint256 expectedEURC = (PAYMENT_AMOUNT * 0.94e18) / 1e18;
         assertEq(eurc.balanceOf(employee), expectedEURC);
     }
+
+    function test_AuthorizedEmployer_CanSchedulePayment() public {
+        address authorizedEmployer = makeAddr("authorizedEmployer");
+        uint256 releaseAt = block.timestamp + 30 days;
+
+        // Authorize new employer
+        vm.prank(employer);
+        escrow.addAuthorizedEmployer(authorizedEmployer);
+
+        // Mint USDC to authorized employer
+        usdc.mint(authorizedEmployer, PAYMENT_AMOUNT);
+
+        // Authorized employer can schedule payment
+        vm.startPrank(authorizedEmployer);
+        usdc.approve(address(escrow), PAYMENT_AMOUNT);
+        
+        uint256 paymentId = escrow.depositAndSchedule(
+            employee,
+            PAYMENT_AMOUNT,
+            releaseAt,
+            false,
+            address(usdc),
+            address(usdc)
+        );
+        vm.stopPrank();
+
+        assertEq(paymentId, 0);
+        PayrollEscrow.Payment memory payment = escrow.getPayment(paymentId);
+        assertEq(payment.recipient, employee);
+        assertEq(payment.amount, PAYMENT_AMOUNT);
+    }
+
+    function test_AuthorizedEmployer_CanVerifyWork() public {
+        uint256 authorizedPrivateKey = 0xBEEF; // Use a proper private key
+        address authorizedEmployer = vm.addr(authorizedPrivateKey);
+        uint256 releaseAt = block.timestamp + 30 days;
+
+        // Authorize new employer
+        vm.prank(employer);
+        escrow.addAuthorizedEmployer(authorizedEmployer);
+
+        // Schedule payment with work verification (main employer schedules it)
+        vm.startPrank(employer);
+        usdc.approve(address(escrow), PAYMENT_AMOUNT);
+        uint256 paymentId = escrow.depositAndSchedule(
+            employee,
+            PAYMENT_AMOUNT,
+            releaseAt,
+            true,
+            address(usdc),
+            address(usdc)
+        );
+        vm.stopPrank();
+
+        // Create signature from main employer (since signature uses main employer address)
+        bytes32 messageHash = keccak256(abi.encodePacked(employee, paymentId, employer));
+        bytes32 ethSignedMessageHash = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
+        );
+        
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(employerPrivateKey, ethSignedMessageHash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        // Authorized employer can submit the verification
+        vm.prank(authorizedEmployer);
+        escrow.verifyWork(paymentId, signature);
+
+        assertTrue(escrow.workVerified(paymentId));
+    }
+
+    function test_NonAuthorizedEmployer_CannotSchedulePayment() public {
+        address unauthorizedEmployer = makeAddr("unauthorizedEmployer");
+        uint256 releaseAt = block.timestamp + 30 days;
+
+        // Unauthorized employer cannot schedule payment
+        vm.startPrank(unauthorizedEmployer);
+        vm.expectRevert(PayrollEscrow.OnlyEmployer.selector);
+        escrow.depositAndSchedule(
+            employee,
+            PAYMENT_AMOUNT,
+            releaseAt,
+            false,
+            address(usdc),
+            address(usdc)
+        );
+        vm.stopPrank();
+    }
+
+    function test_AuthorizedEmployer_CanCreateAndVerifyOwnWork() public {
+        uint256 authorizedPrivateKey = 0xBEEF;
+        address authorizedEmployer = vm.addr(authorizedPrivateKey);
+        uint256 releaseAt = block.timestamp + 30 days;
+
+        // Authorize new employer
+        vm.prank(employer);
+        escrow.addAuthorizedEmployer(authorizedEmployer);
+
+        // Mint USDC to authorized employer
+        usdc.mint(authorizedEmployer, PAYMENT_AMOUNT);
+
+        // Authorized employer schedules payment with work verification
+        vm.startPrank(authorizedEmployer);
+        usdc.approve(address(escrow), PAYMENT_AMOUNT);
+        uint256 paymentId = escrow.depositAndSchedule(
+            employee,
+            PAYMENT_AMOUNT,
+            releaseAt,
+            true,
+            address(usdc),
+            address(usdc)
+        );
+        
+        // Create signature from authorized employer (signature still uses main employer address)
+        bytes32 messageHash = keccak256(abi.encodePacked(employee, paymentId, employer));
+        bytes32 ethSignedMessageHash = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
+        );
+        
+        // Main employer creates signature
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(employerPrivateKey, ethSignedMessageHash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        // Authorized employer can submit the verification
+        escrow.verifyWork(paymentId, signature);
+        vm.stopPrank();
+
+        assertTrue(escrow.workVerified(paymentId));
+    }
+
+    function test_IsAuthorizedEmployer() public {
+        address authorizedEmployer = makeAddr("authorizedEmployer");
+        address unauthorizedEmployer = makeAddr("unauthorizedEmployer");
+
+        // Initially only main employer is authorized
+        assertTrue(escrow.isAuthorizedEmployer(employer));
+        assertFalse(escrow.isAuthorizedEmployer(authorizedEmployer));
+        assertFalse(escrow.isAuthorizedEmployer(unauthorizedEmployer));
+
+        // Authorize new employer
+        vm.prank(employer);
+        escrow.addAuthorizedEmployer(authorizedEmployer);
+
+        assertTrue(escrow.isAuthorizedEmployer(employer));
+        assertTrue(escrow.isAuthorizedEmployer(authorizedEmployer));
+        assertFalse(escrow.isAuthorizedEmployer(unauthorizedEmployer));
+
+        // Remove authorization
+        vm.prank(employer);
+        escrow.removeAuthorizedEmployer(authorizedEmployer);
+
+        assertTrue(escrow.isAuthorizedEmployer(employer));
+        assertFalse(escrow.isAuthorizedEmployer(authorizedEmployer));
+    }
 }
 

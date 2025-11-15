@@ -14,6 +14,7 @@ contract PayrollEscrow is ReentrancyGuard {
     // ============ ERRORS ============
 
     error OnlyEmployer();
+    error OnlyAuthorizedEmployer();
     error InvalidAmount();
     error InvalidReleaseTime();
     error InvalidAddress();
@@ -75,6 +76,9 @@ contract PayrollEscrow is ReentrancyGuard {
 
     /// @notice Employer address (contract owner)
     address public employer;
+    
+    /// @notice Mapping of authorized employer addresses
+    mapping(address => bool) public authorizedEmployers;
 
     /// @notice Payment counter for unique IDs
     uint256 public paymentCounter;
@@ -97,6 +101,11 @@ contract PayrollEscrow is ReentrancyGuard {
     // ============ MODIFIERS ============
 
     modifier onlyEmployer() {
+        if (msg.sender != employer && !authorizedEmployers[msg.sender]) revert OnlyEmployer();
+        _;
+    }
+    
+    modifier onlyMainEmployer() {
         if (msg.sender != employer) revert OnlyEmployer();
         _;
     }
@@ -107,6 +116,7 @@ contract PayrollEscrow is ReentrancyGuard {
         if (_usdc == address(0) || _eurc == address(0)) revert InvalidAddress();
 
         employer = msg.sender;
+        authorizedEmployers[msg.sender] = true;
         USDC = _usdc;
         EURC = _eurc;
         fxRouter = _fxRouter;
@@ -115,10 +125,30 @@ contract PayrollEscrow is ReentrancyGuard {
     // ============ ADMIN FUNCTIONS ============
 
     /**
+     * @notice Add an authorized employer address
+     * @param newEmployer Address to authorize
+     */
+    function addAuthorizedEmployer(address newEmployer) external onlyMainEmployer {
+        if (newEmployer == address(0)) revert InvalidAddress();
+        authorizedEmployers[newEmployer] = true;
+        emit ConfigurationUpdated("authorizedEmployer", newEmployer);
+    }
+    
+    /**
+     * @notice Remove an authorized employer address
+     * @param employerToRemove Address to remove authorization
+     */
+    function removeAuthorizedEmployer(address employerToRemove) external onlyMainEmployer {
+        if (employerToRemove == address(0)) revert InvalidAddress();
+        authorizedEmployers[employerToRemove] = false;
+        emit ConfigurationUpdated("removedEmployer", employerToRemove);
+    }
+
+    /**
      * @notice Set the FXRouter contract address
      * @param _fxRouter New FXRouter address
      */
-    function setFXRouter(address _fxRouter) external onlyEmployer {
+    function setFXRouter(address _fxRouter) external onlyMainEmployer {
         if (_fxRouter == address(0)) revert InvalidAddress();
         fxRouter = _fxRouter;
         emit ConfigurationUpdated("fxRouter", _fxRouter);
@@ -129,7 +159,7 @@ contract PayrollEscrow is ReentrancyGuard {
      * @param _usdc USDC token address
      * @param _eurc EURC token address
      */
-    function setStablecoinAddresses(address _usdc, address _eurc) external onlyEmployer {
+    function setStablecoinAddresses(address _usdc, address _eurc) external onlyMainEmployer {
         if (_usdc == address(0) || _eurc == address(0)) revert InvalidAddress();
         USDC = _usdc;
         EURC = _eurc;
@@ -141,9 +171,10 @@ contract PayrollEscrow is ReentrancyGuard {
      * @notice Transfer employer role to a new address
      * @param newEmployer New employer address
      */
-    function transferEmployer(address newEmployer) external onlyEmployer {
+    function transferEmployer(address newEmployer) external onlyMainEmployer {
         if (newEmployer == address(0)) revert InvalidAddress();
         employer = newEmployer;
+        authorizedEmployers[newEmployer] = true;
         emit ConfigurationUpdated("employer", newEmployer);
     }
 
@@ -251,15 +282,15 @@ contract PayrollEscrow is ReentrancyGuard {
         if (payment.recipient == address(0)) revert PaymentNotFound();
         if (!payment.requiresWorkEvent) return; // No verification needed
 
-        // Create message hash
+        // Create message hash using the main employer address
         bytes32 messageHash = keccak256(abi.encodePacked(payment.recipient, paymentId, employer));
         bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
 
         // Recover signer
         address signer = recoverSigner(ethSignedMessageHash, signature);
 
-        // Verify signer is employer
-        if (signer != employer) revert InvalidSignature();
+        // Verify signer is an authorized employer (main employer or authorized)
+        if (signer != employer && !authorizedEmployers[signer]) revert InvalidSignature();
 
         // Mark work as verified
         workVerified[paymentId] = true;
@@ -292,6 +323,15 @@ contract PayrollEscrow is ReentrancyGuard {
         if (payment.requiresWorkEvent && !workVerified[paymentId]) return false;
 
         return true;
+    }
+
+    /**
+     * @notice Check if an address is an authorized employer
+     * @param account Address to check
+     * @return True if the address is an authorized employer
+     */
+    function isAuthorizedEmployer(address account) external view returns (bool) {
+        return account == employer || authorizedEmployers[account];
     }
 
     /**
