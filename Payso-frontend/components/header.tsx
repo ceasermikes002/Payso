@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { LogIn, UserPlus, Menu, LayoutDashboard, DollarSign, Users, Shield, Clock, X } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   DropdownMenu,
@@ -16,7 +16,18 @@ import { useRouter } from 'next/navigation'
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY
+      setIsScrolled(scrollTop > 10)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId)
@@ -27,48 +38,76 @@ export function Header() {
 
   return (
     <div>
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0B1A3D]/80 border-b border-white/5">
+    <header className={`sticky top-0 z-50 backdrop-blur-xl border-b border-white/5 transition-all duration-300 ease-in-out ${
+      isScrolled 
+        ? 'bg-[#0B1A3D]/95 shadow-lg shadow-black/20 border-white/10' 
+        : 'bg-[#0B1A3D]/80'
+    }`}>
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
+            <div className={`flex items-center gap-1 transition-all duration-300 ${
+              isScrolled ? 'scale-90' : 'scale-100'
+            }`}>
               <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
               <div className="w-3 h-3 rounded-full bg-indigo-400"></div>
               <div className="w-3 h-3 rounded-full bg-indigo-600"></div>
             </div>
-            <span className="text-xl font-bold text-white">Payso</span>
+            <span className={`text-xl font-bold text-white transition-all duration-300 ${
+              isScrolled ? 'text-lg' : 'text-xl'
+            }`}>Payso</span>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             <button 
               onClick={() => scrollToSection('home')}
-              className="text-white/80 hover:text-white transition-colors"
+              className={`transition-all duration-300 ${
+                isScrolled 
+                  ? 'text-white/70 hover:text-white text-sm' 
+                  : 'text-white/80 hover:text-white'
+              }`}
             >
               Home
             </button>
             <button 
               onClick={() => scrollToSection('about')}
-              className="text-white/80 hover:text-white transition-colors"
+              className={`transition-all duration-300 ${
+                isScrolled 
+                  ? 'text-white/70 hover:text-white text-sm' 
+                  : 'text-white/80 hover:text-white'
+              }`}
             >
               Features
             </button>
             <button 
               onClick={() => scrollToSection('stats')}
-              className="text-white/80 hover:text-white transition-colors"
+              className={`transition-all duration-300 ${
+                isScrolled 
+                  ? 'text-white/70 hover:text-white text-sm' 
+                  : 'text-white/80 hover:text-white'
+              }`}
             >
               Stats
             </button>
             <button 
               onClick={() => scrollToSection('testimonials')}
-              className="text-white/80 hover:text-white transition-colors"
+              className={`transition-all duration-300 ${
+                isScrolled 
+                  ? 'text-white/70 hover:text-white text-sm' 
+                  : 'text-white/80 hover:text-white'
+              }`}
             >
               Testimonials
             </button>
             <button 
               onClick={() => scrollToSection('payroll')}
-              className="text-white/80 hover:text-white transition-colors"
+              className={`transition-all duration-300 ${
+                isScrolled 
+                  ? 'text-white/70 hover:text-white text-sm' 
+                  : 'text-white/80 hover:text-white'
+              }`}
             >
               Payroll
             </button>
@@ -79,19 +118,27 @@ export function Header() {
             <Link href="/dashboard">
               <Button
                 variant="outline"
-                className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white"
+                className={`rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white transition-all duration-300 ${
+                  isScrolled ? 'text-sm py-1 px-3' : ''
+                }`}
               >
                 <LayoutDashboard className="h-4 w-4 mr-2" />
                 Dashboard
               </Button>
             </Link>
-            <WalletConnect />
+            <div className={`transition-all duration-300 ${
+              isScrolled ? 'scale-90' : 'scale-100'
+            }`}>
+              <WalletConnect />
+            </div>
             <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white"
+                  className={`rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-white transition-all duration-300 ${
+                    isScrolled ? 'scale-90' : 'scale-100'
+                  }`}
                 >
                   <Menu className="h-5 w-5" />
                 </Button>

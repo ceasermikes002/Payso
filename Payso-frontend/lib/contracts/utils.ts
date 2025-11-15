@@ -30,7 +30,7 @@ export function formatDateTime(timestamp: number): string {
 
 export function formatAddress(address: string): string {
   if (!address) return ''
-  return `${address.slice(0, 6)}…${address.slice(-4)}`
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
 
 export function isPaymentClaimable(
@@ -59,7 +59,6 @@ export function getPaymentStatus(
   return 'claimable'
 }
 
-<<<<<<< HEAD
 export function getStatusIcon(status: string) {
   switch (status) {
     case 'claimed':
@@ -86,8 +85,4 @@ export function getStatusBadge(status: string) {
   const variant = variants[status as keyof typeof variants] || { className: 'bg-gray-500/10 text-gray-400', text: 'Unknown' }
   
   return { className: `px-2 py-1 rounded-full text-xs ${variant.className}`, text: variant.text }
-export function formatAddress(address: string): string {
-  if (!address) return ''
-  return `${address.slice(0, 6)}...${address.slice(-4)}`
-}
 }

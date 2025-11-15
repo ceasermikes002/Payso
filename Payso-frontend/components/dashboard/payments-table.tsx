@@ -79,12 +79,15 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
                   </TableCell>
                   <TableCell className="text-white/80">
                     <div className="flex flex-col">
-                      <span>{payment.formattedReleaseDate}</span>
-                      {payment.daysUntilRelease > 0 && (
-                        <span className="text-xs text-white/40">
-                          in {payment.daysUntilRelease}d
-                        </span>
-                      )}
+                      <span className="font-medium">{payment.formattedReleaseDate}</span>
+                      <span className="text-xs text-white/40">
+                        {payment.daysUntilRelease > 0 
+                          ? `in ${payment.daysUntilRelease} day${payment.daysUntilRelease !== 1 ? 's' : ''}`
+                          : payment.daysUntilRelease === 0 
+                          ? 'Today' 
+                          : 'Overdue'
+                        }
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>{getStatusBadge(payment.status)}</TableCell>
