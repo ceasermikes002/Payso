@@ -1,4 +1,5 @@
 import webpackConfig from './webpack.config.js';
+import path from 'path';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -8,10 +9,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Fix: Add empty turbopack config to acknowledge Turbopack in Next.js 16
-  experimental: {
-    turbopack: {}, // Changed from 'turbo: undefined'
-  },
+  // Remove experimental turbopack config to avoid conflicts
   // Configure webpack as fallback
   webpack: (config, { isServer }) => {
     // Create a custom plugin to handle problematic modules
@@ -30,12 +28,12 @@ const nextConfig = {
               
               for (const module of problematicModules) {
                 if (resolveData.request.includes(module)) {
-                  // Return false to exclude this module
+                  // Return false to exclude this module (bailing hook behavior)
                   return false;
                 }
               }
             }
-            return resolveData;
+            // For bailing hooks, don't return the object, just don't return false
           });
         });
       }
@@ -46,7 +44,7 @@ const nextConfig = {
     // Completely exclude thread-stream and related test packages
     config.resolve.alias = {
       ...config.resolve.alias,
-      'thread-stream': require('path').resolve('./thread-stream-mock.js'),
+      'thread-stream': path.resolve('./thread-stream-mock.js'),
       'tap': false,
       'tape': false,
       'why-is-node-running': false,
