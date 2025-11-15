@@ -11,7 +11,8 @@
   },
   "overrides": {
     "pino": "^9.0.0",
-    "thread-stream": "^3.0.0"
+    "thread-stream": "^3.0.0",
+    "motion-dom": "^11.0.0"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
