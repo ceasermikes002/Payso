@@ -1,8 +1,7 @@
 'use client'
 
 import { DollarSign, Bitcoin, EthernetPort } from 'lucide-react'
-import { motion, useInView, useMotionValue, useSpring, useTransform } from 'framer-motion'
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 
 interface ChainStats {
   icon: React.ElementType
@@ -62,62 +61,110 @@ interface AnimatedCounterProps {
 
 function AnimatedCounter({ value, delay = 0, isUsd = true, precision = 0 }: AnimatedCounterProps) {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true })
-  
-  const motionValue = useMotionValue(0)
-  const springValue = useSpring(motionValue, { duration: 1500, bounce: 0 })
+  const [displayValue, setDisplayValue] = useState(0)
+  const [isVisible, setIsVisible] = useState(false)
   
   useEffect(() => {
-    if (isInView) {
-      setTimeout(() => {
-        motionValue.set(value)
-      }, delay * 1000)
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          setTimeout(() => {
+            // Simple counter animation
+            const duration = 1500
+            const startTime = Date.now()
+            const startValue = 0
+            
+            const animate = () => {
+              const elapsed = Date.now() - startTime
+              const progress = Math.min(elapsed / duration, 1)
+              const currentValue = startValue + (value - startValue) * progress
+              
+              setDisplayValue(currentValue)
+              
+              if (progress < 1) {
+                requestAnimationFrame(animate)
+              }
+            }
+            
+            requestAnimationFrame(animate)
+          }, delay * 1000)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.1, rootMargin: "-100px" }
+    )
+    
+    if (ref.current) {
+      observer.observe(ref.current)
     }
-  }, [isInView, value, delay, motionValue])
-
-  const displayValue = useTransform(springValue, (latest) => {
+    
+    return () => observer.disconnect()
+  }, [value, delay])
+  
+  const formatValue = (val: number) => {
     if (isUsd) {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: precision,
         maximumFractionDigits: precision,
-      }).format(latest)
+      }).format(val)
     } else {
-      return latest.toLocaleString('en-US', {
+      return val.toLocaleString('en-US', {
         minimumFractionDigits: precision,
         maximumFractionDigits: precision,
       })
     }
-  })
+  }
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial={{ opacity: 0 }}
-      animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-      transition={{ duration: 0.4, delay }}
-      className="text-2xl lg:text-3xl font-bold text-white"
+      className={`text-2xl lg:text-3xl font-bold text-white transition-opacity duration-400 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+      style={{ transitionDelay: `${delay}s` }}
     >
-      <motion.span>
-        {displayValue}
-      </motion.span>
-    </motion.div>
+      <span>
+        {formatValue(displayValue)}
+      </span>
+    </div>
   )
 }
 
 function ChainStatCard({ stat, index }: { stat: ChainStats; index: number }) {
   const isCrypto = stat.symbol === 'BTC' || stat.symbol === 'ETH'
+  const [isVisible, setIsVisible] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            setIsVisible(true)
+          }, index * 100)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.1, rootMargin: "-50px" }
+    )
+    
+    if (cardRef.current) {
+      observer.observe(cardRef.current)
+    }
+    
+    return () => observer.disconnect()
+  }, [index])
   
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ 
-        duration: 0.5, 
-        delay: index * 0.1
-      }}
-      className="group"
+    <div
+      ref={cardRef}
+      className={`group transition-all duration-500 transform ${
+        isVisible 
+          ? 'opacity-100 translate-y-0' 
+          : 'opacity-0 translate-y-8'
+      }`}
+      style={{ transitionDelay: `${index * 0.1}s` }}
     >
       <div className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-200 hover:translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10">
         <div className="flex items-center justify-between mb-3">
@@ -147,13 +194,33 @@ function ChainStatCard({ stat, index }: { stat: ChainStats; index: number }) {
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 }
 
 export function StatsSection() {
   const sectionRef = useRef<HTMLElement>(null)
-  const isInView = useInView(sectionRef, { once: true, margin: "-100px" })
+  const [isSectionVisible, setIsSectionVisible] = useState(false)
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            setIsSectionVisible(true)
+          }, 200)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.1, rootMargin: "-100px" }
+    )
+    
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current)
+    }
+    
+    return () => observer.disconnect()
+  }, [])
   
   const totalValue = chainStats.reduce((sum, stat) => sum + stat.usdValue, 0)
 
@@ -163,11 +230,12 @@ export function StatsSection() {
         <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[800px] h-[800px] bg-gradient-to-br from-indigo-600/10 to-purple-600/10 blur-3xl rounded-full"></div>
       </div>
       <div className="container mx-auto px-4 lg:px-8">
-        <motion.div 
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.6 }}
+        <div 
+          className={`text-center mb-16 transition-all duration-600 transform ${
+            isSectionVisible 
+              ? 'opacity-100 translate-y-0' 
+              : 'opacity-0 translate-y-5'
+          }`}
         >
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
             Total Volume Escrowed
@@ -178,7 +246,7 @@ export function StatsSection() {
           <p className="text-white/60">
             Secured across multiple blockchains
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
           {chainStats.map((stat, index) => (

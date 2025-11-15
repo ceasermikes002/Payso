@@ -1,3 +1,5 @@
+import path from 'path';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -10,7 +12,7 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   experimental: {
-    optimizePackageImports: ['@rainbow-me/rainbowkit', 'wagmi', 'viem', 'framer-motion', '@reown/appkit', '@walletconnect'],
+    optimizePackageImports: ['@rainbow-me/rainbowkit', 'wagmi', 'viem', '@reown/appkit', '@walletconnect'],
   },
   // Empty Turbopack config to satisfy Next.js 16
   turbopack: {},
@@ -21,8 +23,6 @@ const nextConfig = {
       /node_modules\/.*\/tests\./,
       /node_modules\/.*\/__tests__\./,
       /node_modules\/thread-stream\/test/,
-      /node_modules\/motion-dom\/.*\/test\./,
-      /node_modules\/motion-dom\/.*\/test\.mjs/,
       /node_modules\/viem\/.*\/test\./,
       /node_modules\/viem\/_esm\/.*\/test\./,
       /testActions/,
@@ -46,16 +46,12 @@ const nextConfig = {
       'desm': false,
       'testActions': false,
       'thread-stream': false,
-      'motion-dom/test': false,
-      'motion-dom/value/types/test': false,
       'viem/clients/decorators/test': false,
     };
 
     // Add aliases for missing test modules
     config.resolve.alias = {
       ...config.resolve.alias,
-      'motion-dom/value/types/test.mjs': false,
-      'motion-dom/dist/es/value/types/test.mjs': false,
       'viem/_esm/clients/decorators/test.js': false,
       './test.mjs': false,
       '../test.mjs': false,
@@ -66,7 +62,6 @@ const nextConfig = {
       config.externals = config.externals ? [config.externals] : [];
     }
     config.externals.push('thread-stream');
-    config.externals.push('motion-dom/value/types/test');
     config.externals.push('viem/clients/decorators/test');
 
     return config;
