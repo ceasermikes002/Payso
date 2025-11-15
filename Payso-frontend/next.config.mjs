@@ -8,9 +8,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Disable Turbopack completely
+  // Fix: Add empty turbopack config to acknowledge Turbopack in Next.js 16
   experimental: {
-    turbo: undefined,
+    turbopack: {}, // Changed from 'turbo: undefined'
   },
   // Configure webpack as fallback
   webpack: (config, { isServer }) => {
