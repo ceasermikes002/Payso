@@ -1,3 +1,5 @@
+import webpackConfig from './webpack.config.js';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -6,29 +8,74 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Configure Turbopack to handle thread-stream package properly
+  // Disable Turbopack completely
   experimental: {
-    turbo: {
-      rules: {
-        // Exclude test files and problematic modules from Turbopack processing
-        '**/test/**': { loader: 'ignore-loader' },
-        '**/*.test.{js,ts,mjs}': { loader: 'ignore-loader' },
-        '**/node_modules/thread-stream/test/**': { loader: 'ignore-loader' },
-        '**/node_modules/thread-stream/*.test.{js,ts,mjs}': { loader: 'ignore-loader' },
-        '**/node_modules/thread-stream/LICENSE': { loader: 'ignore-loader' },
-        '**/node_modules/thread-stream/README.md': { loader: 'ignore-loader' },
-        '**/node_modules/tap/**': { loader: 'ignore-loader' },
-        '**/node_modules/tape/**': { loader: 'ignore-loader' },
-        '**/node_modules/why-is-node-running/**': { loader: 'ignore-loader' },
-        '**/node_modules/desm/**': { loader: 'ignore-loader' },
-      },
-    },
+    turbo: undefined,
   },
   // Configure webpack as fallback
   webpack: (config, { isServer }) => {
-    // Exclude test files and problematic modules from webpack bundling
-    config.module.rules.push({
-      test: /node_modules\/thread-stream\/test/,
+    // Create a custom plugin to handle problematic modules
+    class ExcludeProblematicModulesPlugin {
+      apply(compiler) {
+        compiler.hooks.normalModuleFactory.tap('ExcludeProblematicModulesPlugin', (nmf) => {
+          nmf.hooks.beforeResolve.tap('ExcludeProblematicModulesPlugin', (resolveData) => {
+            if (resolveData.request) {
+              const problematicModules = [
+                'thread-stream',
+                'tap',
+                'tape', 
+                'why-is-node-running',
+                'desm'
+              ];
+              
+              for (const module of problematicModules) {
+                if (resolveData.request.includes(module)) {
+                  // Return false to exclude this module
+                  return false;
+                }
+              }
+            }
+            return resolveData;
+          });
+        });
+      }
+    }
+    
+    config.plugins.push(new ExcludeProblematicModulesPlugin());
+    
+    // Completely exclude thread-stream and related test packages
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'thread-stream': require('path').resolve('./thread-stream-mock.js'),
+      'tap': false,
+      'tape': false,
+      'why-is-node-running': false,
+      'desm': false,
+    };
+    
+    // Add module rules to exclude problematic packages
+    config.module.rules.unshift({
+      test: /node_modules\/thread-stream/,
+      use: 'ignore-loader',
+    });
+    
+    config.module.rules.unshift({
+      test: /node_modules\/tap/,
+      use: 'ignore-loader',
+    });
+    
+    config.module.rules.unshift({
+      test: /node_modules\/tape/,
+      use: 'ignore-loader',
+    });
+    
+    config.module.rules.unshift({
+      test: /node_modules\/why-is-node-running/,
+      use: 'ignore-loader',
+    });
+    
+    config.module.rules.unshift({
+      test: /node_modules\/desm/,
       use: 'ignore-loader',
     });
     
@@ -38,14 +85,11 @@ const nextConfig = {
       use: 'ignore-loader',
     });
     
-    // Exclude specific problematic testing modules
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'tap': false,
-      'tape': false,
-      'why-is-node-running': false,
-      'desm': false,
-    };
+    // Exclude test directories
+    config.module.rules.push({
+      test: /test\//,
+      use: 'ignore-loader',
+    });
     
     // Add fallback for Node.js modules that shouldn't be bundled
     config.resolve.fallback = {
@@ -74,6 +118,21 @@ const nextConfig = {
       process: false,
       console: false,
     };
+    
+    // Merge with external webpack config
+    if (webpackConfig.resolve && webpackConfig.resolve.alias) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        ...webpackConfig.resolve.alias
+      };
+    }
+    
+    if (webpackConfig.module && webpackConfig.module.rules) {
+      config.module.rules = [
+        ...webpackConfig.module.rules,
+        ...config.module.rules
+      ];
+    }
     
     return config;
   },

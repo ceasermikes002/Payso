@@ -1,0 +1,8 @@
+# Exclude problematic packages and test files from build
+node_modules/thread-stream/test/**
+node_modules/thread-stream/*.test.js
+node_modules/thread-stream/*.test.mjs
+node_modules/tap/**
+node_modules/tape/**
+node_modules/why-is-node-running/**
+node_modules/desm/**

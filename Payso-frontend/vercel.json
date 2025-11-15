@@ -3,7 +3,6 @@
   "framework": "nextjs",
   "installCommand": "npm install",
   "outputDirectory": ".next",
-  "cache": false,
   "env": {
     "NEXT_WEBPACK_USE_EXTERNAL_DIR": "true",
     "TURBOPACK": "false"
