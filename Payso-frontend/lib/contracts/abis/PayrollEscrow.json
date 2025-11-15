@@ -1,0 +1,168 @@
+[
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_usdc", "type": "address" },
+      { "internalType": "address", "name": "_eurc", "type": "address" },
+      { "internalType": "address", "name": "_fxRouter", "type": "address" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "paymentId", "type": "uint256" }],
+    "name": "claimPayment",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "recipient", "type": "address" },
+      { "internalType": "uint256", "name": "amount", "type": "uint256" },
+      { "internalType": "uint256", "name": "releaseAt", "type": "uint256" },
+      { "internalType": "bool", "name": "requiresWorkEvent", "type": "bool" },
+      { "internalType": "address", "name": "stablecoin", "type": "address" },
+      { "internalType": "address", "name": "preferredPayout", "type": "address" }
+    ],
+    "name": "depositAndSchedule",
+    "outputs": [{ "internalType": "uint256", "name": "paymentId", "type": "uint256" }],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "employer",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "EURC",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fxRouter",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "paymentId", "type": "uint256" }],
+    "name": "getPayment",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "uint256", "name": "id", "type": "uint256" },
+          { "internalType": "address", "name": "recipient", "type": "address" },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" },
+          { "internalType": "uint256", "name": "releaseAt", "type": "uint256" },
+          { "internalType": "bool", "name": "claimed", "type": "bool" },
+          { "internalType": "bool", "name": "requiresWorkEvent", "type": "bool" },
+          { "internalType": "address", "name": "stablecoin", "type": "address" },
+          { "internalType": "address", "name": "preferredPayout", "type": "address" }
+        ],
+        "internalType": "struct PayrollEscrow.Payment",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "recipient", "type": "address" }],
+    "name": "getPaymentsByRecipient",
+    "outputs": [{ "internalType": "uint256[]", "name": "", "type": "uint256[]" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "paymentId", "type": "uint256" }],
+    "name": "isClaimable",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paymentCounter",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "name": "payments",
+    "outputs": [
+      { "internalType": "uint256", "name": "id", "type": "uint256" },
+      { "internalType": "address", "name": "recipient", "type": "address" },
+      { "internalType": "uint256", "name": "amount", "type": "uint256" },
+      { "internalType": "uint256", "name": "releaseAt", "type": "uint256" },
+      { "internalType": "bool", "name": "claimed", "type": "bool" },
+      { "internalType": "bool", "name": "requiresWorkEvent", "type": "bool" },
+      { "internalType": "address", "name": "stablecoin", "type": "address" },
+      { "internalType": "address", "name": "preferredPayout", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "USDC",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "paymentId", "type": "uint256" }],
+    "name": "verifyWork",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "name": "workVerified",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "type": "event",
+    "name": "PaymentClaimed",
+    "inputs": [
+      { "name": "id", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "recipient", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "payoutToken", "type": "address", "indexed": false, "internalType": "address" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PaymentScheduled",
+    "inputs": [
+      { "name": "id", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "recipient", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "amount", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "releaseAt", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "stablecoin", "type": "address", "indexed": false, "internalType": "address" },
+      { "name": "preferredPayout", "type": "address", "indexed": false, "internalType": "address" },
+      { "name": "requiresWorkEvent", "type": "bool", "indexed": false, "internalType": "bool" }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "WorkVerified",
+    "inputs": [
+      { "name": "id", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "verifier", "type": "address", "indexed": true, "internalType": "address" }
+    ],
+    "anonymous": false
+  }
+]

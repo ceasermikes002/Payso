@@ -2,7 +2,8 @@ import { Github, Twitter, Linkedin, Mail } from 'lucide-react'
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/5 py-12 mt-24" id="contact">
+    <footer className="border-t border-white/5 py-12 mt-24 relative" id="contact">
+      <div className="absolute -top-28 left-1/2 -translate-x-1/2 w-[800px] h-[200px] bg-gradient-to-br from-indigo-600/10 to-purple-600/10 blur-3xl rounded-full"></div>
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div className="space-y-4">
@@ -12,7 +13,7 @@ export function Footer() {
                 <div className="w-3 h-3 rounded-full bg-indigo-400"></div>
                 <div className="w-3 h-3 rounded-full bg-indigo-600"></div>
               </div>
-              <span className="text-xl font-bold text-white">ArcPay</span>
+              <span className="text-xl font-bold text-white">Payso</span>
             </div>
             <p className="text-white/60 text-sm">
               Trusted crypto escrow service for seamless global payments.
@@ -52,7 +53,7 @@ export function Footer() {
 
         <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-white/40 text-sm">
-            © 2025 ArcPay. All rights reserved.
+            © 2025 Payso. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <a href="#" className="text-white/60 hover:text-white transition-colors">

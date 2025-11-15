@@ -1,89 +1,49 @@
-/**
- * @fileoverview Dashboard overview page
- */
-
 'use client'
 
+import { useAccount } from 'wagmi'
+import { useRouter } from 'next/navigation'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
-import { StatsCards } from '@/components/dashboard/stats-cards'
-import { PaymentsTable } from '@/components/dashboard/payments-table'
-import { ActivityChart } from '@/components/dashboard/activity-chart'
-import { QuickActions } from '@/components/dashboard/quick-actions'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Download } from 'lucide-react'
-import type { DashboardStats, PaymentWithStatus, ActivityData } from '@/lib/types'
-import { PaymentStatus } from '@/lib/types'
-
-/** Mock data for demonstration */
-const mockStats: DashboardStats = {
-  totalPayments: 24,
-  totalValue: '125,450.00',
-  pendingPayments: 8,
-  claimedPayments: 16,
-  averagePayment: '5,227.08',
-}
-
-const mockPayments: PaymentWithStatus[] = [
-  {
-    id: 0,
-    recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
-    amount: BigInt('5000000000'),
-    releaseAt: Math.floor(Date.now() / 1000) + 86400 * 5,
-    claimed: false,
-    requiresWorkEvent: false,
-    stablecoin: '0xUSDC',
-    preferredPayout: '0xUSDC',
-    status: PaymentStatus.PENDING,
-    formattedAmount: '5,000.00',
-    formattedReleaseDate: 'Nov 19, 2025',
-    daysUntilRelease: 5,
-    stablecoinSymbol: 'USDC',
-    payoutSymbol: 'USDC',
-  },
-  {
-    id: 1,
-    recipient: '0x8ba1f109551bD432803012645Ac136ddd64DBA72',
-    amount: BigInt('3500000000'),
-    releaseAt: Math.floor(Date.now() / 1000) - 86400,
-    claimed: false,
-    requiresWorkEvent: false,
-    stablecoin: '0xUSDC',
-    preferredPayout: '0xEURC',
-    status: PaymentStatus.CLAIMABLE,
-    formattedAmount: '3,500.00',
-    formattedReleaseDate: 'Nov 13, 2025',
-    daysUntilRelease: 0,
-    stablecoinSymbol: 'USDC',
-    payoutSymbol: 'EURC',
-  },
-  {
-    id: 2,
-    recipient: '0x9F33a4809aA708d7a399fedBa514e0A0d15EfA85',
-    amount: BigInt('7500000000'),
-    releaseAt: Math.floor(Date.now() / 1000) - 86400 * 7,
-    claimed: true,
-    requiresWorkEvent: false,
-    stablecoin: '0xEURC',
-    preferredPayout: '0xEURC',
-    status: PaymentStatus.CLAIMED,
-    formattedAmount: '7,500.00',
-    formattedReleaseDate: 'Nov 7, 2025',
-    daysUntilRelease: 0,
-    stablecoinSymbol: 'EURC',
-    payoutSymbol: 'EURC',
-  },
-]
-
-const mockActivity: ActivityData[] = [
-  { date: 'Nov 1', payments: 3, volume: 12500 },
-  { date: 'Nov 4', payments: 5, volume: 18750 },
-  { date: 'Nov 7', payments: 4, volume: 15200 },
-  { date: 'Nov 10', payments: 6, volume: 22100 },
-  { date: 'Nov 13', payments: 4, volume: 16800 },
-  { date: 'Nov 14', payments: 2, volume: 8500 },
-]
+import { Badge } from '@/components/ui/badge'
+import { Wallet, Clock, CheckCircle, TrendingUp, ExternalLink } from 'lucide-react'
+import { useEmployer, useGetPaymentsByRecipient } from '@/lib/contracts/hooks/usePayrollEscrow'
+import { useTokenBalance } from '@/lib/contracts/hooks/useToken'
+import { CONTRACT_ADDRESSES, STABLECOIN_SYMBOLS } from '@/lib/contracts/config'
+import { formatTokenAmount, formatAddress } from '@/lib/contracts/utils'
 
 export default function DashboardPage() {
+  const router = useRouter()
+  const { address, isConnected } = useAccount()
+  const { data: employer } = useEmployer()
+  const { data: paymentIds, isLoading } = useGetPaymentsByRecipient(address || '0x0000000000000000000000000000000000000000')
+  const { data: usdcBalance } = useTokenBalance(CONTRACT_ADDRESSES.USDC, address)
+  const { data: eurcBalance } = useTokenBalance(CONTRACT_ADDRESSES.EURC, address)
+
+  const isEmployer = address && employer && address.toLowerCase() === employer.toLowerCase()
+
+  // Calculate stats
+  const totalPayments = paymentIds?.length || 0
+  const claimablePayments = paymentIds?.filter((payment: any) => !payment.claimed && payment.releaseAt * 1000 <= Date.now()).length || 0
+  const totalValue = paymentIds?.reduce((sum: number, payment: any) => sum + Number(payment.amount), 0) || 0
+
+  // Quick action handlers
+  const handleSchedulePayment = () => {
+    router.push('/dashboard/payments')
+  }
+
+  const handleViewPayments = () => {
+    router.push('/dashboard/payments')
+  }
+
+  const handleViewAvailablePayments = () => {
+    router.push('/dashboard/payments')
+  }
+
+  const handlePaymentHistory = () => {
+    router.push('/dashboard/scheduled')
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -91,33 +51,157 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-            <p className="text-white/60 mt-1">Manage your payroll escrow payments</p>
+            <p className="text-white/60 mt-1">
+              {isEmployer ? 'Manage your payroll escrow payments' : 'View and claim your payments'}
+            </p>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 text-white">
-              <Download className="h-4 w-4 mr-2" />
-              Export
+          {isConnected && (
+            <Button 
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              onClick={isEmployer ? handleSchedulePayment : handleViewPayments}
+            >
+              {isEmployer ? 'Schedule Payment' : 'View Payments'}
             </Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              New Payment
-            </Button>
-          </div>
+          )}
         </div>
 
-        {/* Stats Cards */}
-        <StatsCards stats={mockStats} />
+        {!isConnected ? (
+          <div className="text-center py-12">
+            <h2 className="text-xl font-semibold text-white mb-2">Connect Your Wallet</h2>
+            <p className="text-white/60">Please connect your wallet to access the dashboard.</p>
+          </div>
+        ) : (
+          <>
+            {/* Stats Cards */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              <Card className="bg-white/5 border-white/10">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-white/80">Total Payments</CardTitle>
+                  <Wallet className="h-4 w-4 text-indigo-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-white">{totalPayments}</div>
+                  <p className="text-xs text-white/60">All time payments</p>
+                </CardContent>
+              </Card>
 
-        {/* Charts and Tables */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <ActivityChart data={mockActivity} />
-          </div>
-          <QuickActions />
-          <div className="lg:col-span-3">
-            <PaymentsTable payments={mockPayments} />
-          </div>
-        </div>
+              <Card className="bg-white/5 border-white/10">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-white/80">Ready to Claim</CardTitle>
+                  <CheckCircle className="h-4 w-4 text-green-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-white">{claimablePayments}</div>
+                  <p className="text-xs text-white/60">Available for withdrawal</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/5 border-white/10">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-white/80">USDC Balance</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-blue-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-white">
+                    {usdcBalance ? formatTokenAmount(usdcBalance) : '0.00'}
+                  </div>
+                  <p className="text-xs text-white/60">USDC tokens</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/5 border-white/10">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-white/80">EURC Balance</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-purple-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-white">
+                    {eurcBalance ? formatTokenAmount(eurcBalance) : '0.00'}
+                  </div>
+                  <p className="text-xs text-white/60">EURC tokens</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="bg-white/5 border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-white">Quick Actions</CardTitle>
+                  <CardDescription className="text-white/60">
+                    {isEmployer ? 'Manage your payroll operations' : 'Access your payment features'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {isEmployer ? (
+                    <>
+                      <Button 
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                        onClick={handleSchedulePayment}
+                      >
+                        Schedule New Payment
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-white/20 text-white hover:bg-white/5"
+                        onClick={handleViewPayments}
+                      >
+                        View All Payments
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                        onClick={handleViewAvailablePayments}
+                      >
+                        View Available Payments
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-white/20 text-white hover:bg-white/5"
+                        onClick={handlePaymentHistory}
+                      >
+                        Payment History
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/5 border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-white">Recent Activity</CardTitle>
+                  <CardDescription className="text-white/60">
+                    Your latest transactions and updates
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {totalPayments > 0 ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-white/80">Total Payment Value</span>
+                        <Badge variant="secondary" className="bg-indigo-500/10 text-indigo-400">
+                          {formatTokenAmount(BigInt(totalValue))} USDC
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-white/80">Active Payments</span>
+                        <Badge variant="secondary" className="bg-green-500/10 text-green-400">
+                          {claimablePayments} Ready
+                        </Badge>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-white/60 text-center py-4">
+                      No recent activity to display
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
       </div>
     </DashboardLayout>
   )

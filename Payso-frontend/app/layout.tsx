@@ -1,14 +1,21 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { Web3Provider } from '@/components/web3-provider'
 import './globals.css'
+import { Toaster } from 'sonner'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+// Import Space Grotesk font
+import { Space_Grotesk } from 'next/font/google'
+
+const spaceGrotesk = Space_Grotesk({ 
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-space-grotesk'
+})
 
 export const metadata: Metadata = {
-  title: 'ArcPay - Trusted Crypto Escrow Service',
-  description: 'Programmable multi-currency payroll on Arc. Secure, fast, and transparent escrow services for global payments.',
+  title: 'Payso - Blockchain Payroll Escrow on Arc',
+  description: 'Revolutionary blockchain-powered payroll escrow service. Automate employee payments, eliminate disputes, and ensure on-time salary distribution with smart contracts on Arc Testnet.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -36,8 +43,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans antialiased`}>
-        {children}
+      <body className={`${spaceGrotesk.variable} font-sans antialiased`}>
+        <Web3Provider>
+          {children}
+        </Web3Provider>
+        <Toaster position="top-right" />
         <Analytics />
       </body>
     </html>

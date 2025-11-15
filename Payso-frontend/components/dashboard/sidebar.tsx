@@ -6,18 +6,45 @@
 
 import { LayoutDashboard, Wallet, Clock, Settings, LogOut, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useAccount, useDisconnect } from 'wagmi'
+import { formatAddress } from '@/lib/utils'
+import { useEmployer } from '@/lib/contracts/hooks/usePayrollEscrow'
+import { usePathname } from 'next/navigation'
 
-const navItems = [
+const employerNavItems = [
   { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
-  { icon: Wallet, label: 'Payments', href: '/dashboard/payments' },
+  { icon: Wallet, label: 'Schedule Payment', href: '/dashboard/payments' },
   { icon: Clock, label: 'Scheduled', href: '/dashboard/scheduled' },
+  { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
+]
+
+const employeeNavItems = [
+  { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
+  { icon: Wallet, label: 'My Payments', href: '/dashboard/payments' },
+  { icon: Clock, label: 'Upcoming', href: '/dashboard/scheduled' },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
 ]
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
+  const { address, isConnected } = useAccount()
+  const { disconnect } = useDisconnect()
+  const { data: employer } = useEmployer()
+  const pathname = usePathname()
+  
+  // Prevent hydration mismatch by ensuring client-side only rendering
+  const [isClient, setIsClient] = useState(false)
+  
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+  
+  const isEmployer = address && employer && typeof employer === 'string' && address.toLowerCase() === employer.toLowerCase()
+  const userRole = isEmployer ? 'Employer' : 'Employee'
+  const displayAddress = address ? formatAddress(address) : 'Not connected'
+  const navItems = isClient && isEmployer ? employerNavItems : employeeNavItems
 
   return (
     <>
@@ -49,18 +76,25 @@ export function Sidebar() {
               <div className="w-3 h-3 rounded-full bg-indigo-400" />
               <div className="w-3 h-3 rounded-full bg-indigo-600" />
             </div>
-            <span className="text-xl font-bold text-white">ArcPay</span>
+            <Link href="/" className="text-xl font-bold text-white hover:opacity-80 transition-opacity">
+              Payso
+            </Link>
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon
+              const isActive = isClient && pathname === item.href
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all duration-200"
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    isActive 
+                      ? 'text-white bg-white/10' 
+                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
                   onClick={() => setIsOpen(false)}
                 >
                   <Icon className="h-5 w-5" />
@@ -72,22 +106,27 @@ export function Sidebar() {
 
           {/* User section */}
           <div className="pt-6 border-t border-white/10">
-            <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/5 mb-2">
-              <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-semibold">
-                E
+            {isClient && isConnected && (
+              <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/5 mb-2">
+                <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-semibold">
+                  {userRole.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{userRole}</p>
+                  <p className="text-xs text-white/40 truncate">{displayAddress}</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">Employer</p>
-                <p className="text-xs text-white/40 truncate">0x1234...5678</p>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-white/60 hover:text-white hover:bg-white/5"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Disconnect
-            </Button>
+            )}
+            {isClient && isConnected && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-white/60 hover:text-white hover:bg-white/5"
+                onClick={() => disconnect()}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Disconnect
+              </Button>
+            )}
           </div>
         </div>
       </aside>

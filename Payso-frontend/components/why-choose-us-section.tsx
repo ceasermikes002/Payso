@@ -1,56 +1,95 @@
-import { Shield, Zap, TrendingUp, Heart } from 'lucide-react'
+'use client'
+
+import { Shield, Clock, TrendingUp, Users } from 'lucide-react'
+import { useEffect, useRef } from 'react'
+import { gsap } from 'gsap'
 
 const features = [
   {
     icon: Shield,
-    title: 'Top-Notch Security',
+    title: 'Cryptographic Security',
     description:
-      'Proactively envision brand new multimedia based expertise to also make revenue growth.',
+      'Payroll funds are cryptographically secured in smart contract escrow on Arc Testnet. Immutable blockchain records ensure tamper-proof payment history with complete auditability.',
     color: 'from-indigo-500 to-purple-500',
   },
   {
-    icon: Zap,
-    title: 'Quick Service',
+    icon: Clock,
+    title: 'Automated Payroll Scheduling',
     description:
-      'Bring to the table new win-win survival strategies to ensure an active proactive domination.',
+      'Schedule recurring payroll cycles with precision timing. Smart contracts automatically release payments to employees on predetermined dates without manual intervention or delays.',
     color: 'from-blue-500 to-indigo-500',
   },
   {
     icon: TrendingUp,
-    title: 'Best Market Rate',
+    title: 'Zero Payment Disputes',
     description:
-      'Capitalize on low hanging fruit to identify a new ballpark value added activity to beta test.',
+      'Eliminate payroll conflicts with transparent escrow terms. Employer funds are locked in advance, guaranteeing employees receive their wages on time, every time.',
     color: 'from-purple-500 to-pink-500',
   },
   {
-    icon: Heart,
-    title: 'Customer Support',
+    icon: Users,
+    title: 'Dual-Role Dashboard',
     description:
-      'Podcasting operational change management inside of all users\' workflows to establish work.',
+      'Employers manage payroll escrow and track payments while employees monitor and claim their earnings. Intuitive role-based interfaces optimized for each user type.',
     color: 'from-pink-500 to-rose-500',
   },
 ]
 
 export function WhyChooseUsSection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const featureRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  useEffect(() => {
+    if (!sectionRef.current) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Animate features with stagger effect
+            gsap.fromTo(featureRefs.current.filter(Boolean),
+              { opacity: 0, y: 50, scale: 0.9 },
+              { 
+                opacity: 1, 
+                y: 0, 
+                scale: 1, 
+                duration: 0.6, 
+                stagger: 0.1,
+                ease: 'power3.out'
+              }
+            )
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.2 }
+    )
+
+    observer.observe(sectionRef.current)
+
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <section className="py-24 relative" id="about">
+    <section ref={sectionRef} className="py-24 relative" id="about">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-white">
-            Why choose us<span className="text-indigo-400">?</span>
+            Why Payso<span className="text-indigo-400">?</span>
           </h2>
           <div className="space-y-4 text-white/70 text-lg">
             <p className="text-balance font-semibold text-white">
-              We make the process simple and effortless.
+              The future of payroll management is here.
             </p>
             <p className="text-balance">
-              Enthusiastically engage fully tested process improvements before
-              top-line platforms and without any specific or worsening delays.
+              Traditional payroll systems are slow, expensive, and prone to disputes. 
+              Payso leverages blockchain technology to create a trustless, automated, 
+              and transparent payroll ecosystem.
             </p>
             <p className="text-balance">
-              Rapaciously seize adaptive infomediaries and user-centric before
-              intellectual capital. Collaboratively unleash market-driven &quot;outside
-              the box&quot; thinking for long-term high-impact solutions.
+              From startups to enterprises, businesses worldwide are switching to decentralized 
+              payroll solutions that guarantee security, efficiency, and peace of mind for 
+              both employers and employees.
             </p>
           </div>
         </div>
@@ -59,6 +98,7 @@ export function WhyChooseUsSection() {
           {features.map((feature, index) => (
             <div
               key={index}
+              ref={el => featureRefs.current[index] = el}
               className="relative group"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 to-purple-600/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
