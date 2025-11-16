@@ -91,7 +91,10 @@ export function useGetPaymentsByRecipient(recipient?: Address) {
     abi: PayrollEscrowABI,
     functionName: 'getPaymentsByRecipient',
     args: recipient ? [recipient] : undefined,
-    enabled: Boolean(recipient), // Only enable if recipient is provided
+    // Use query options for conditional execution
+    query: {
+      enabled: Boolean(recipient), // Only enable if recipient is provided
+    },
   })
 }
 
@@ -135,10 +138,12 @@ export function useIsAuthorizedEmployer(address?: Address) {
     abi: PayrollEscrowABI,
     functionName: 'isAuthorizedEmployer',
     args: address ? [address] : undefined,
-    enabled: Boolean(address), // Only enable if address is provided
-    // Add retry configuration to handle temporary network issues
-    retry: 2,
-    retryDelay: 1000,
+    // Use query options for conditional execution
+    query: {
+      enabled: Boolean(address), // Only enable if address is provided
+      retry: 2,
+      retryDelay: 1000,
+    },
   })
 }
 

@@ -44,16 +44,16 @@ export function Sidebar() {
     setIsClient(true)
   }, [])
   
-  // Debug logging
-  useEffect(() => {
-    console.log('=== SIDEBAR DEBUG ===')
-    console.log('Connected address:', address)
-    console.log('Contract employer:', employer)
-    console.log('Is authorized:', isAuthorized)
-    console.log('Address comparison:', address && employer && typeof employer === 'string' && address.toLowerCase() === (employer as string).toLowerCase())
-    console.log('Final isEmployer:', address && employer && typeof employer === 'string' && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized))
-    console.log('=====================')
-  }, [address, employer, isAuthorized])
+  // Debug logging - commented out for production
+  // useEffect(() => {
+  //   console.log('=== SIDEBAR DEBUG ===')
+  //   console.log('Connected address:', address)
+  //   console.log('Contract employer:', employer)
+  //   console.log('Is authorized:', isAuthorized)
+  //   console.log('Address comparison:', address && employer && typeof employer === 'string' && address.toLowerCase() === (employer as string).toLowerCase())
+  //   console.log('Final isEmployer:', address && employer && typeof employer === 'string' && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized))
+  //   console.log('=====================')
+  // }, [address, employer, isAuthorized])
   
   const isEmployer = address && employer && typeof employer === 'string' && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized)
   const userRole = isEmployer ? 'Employer' : 'Employee'

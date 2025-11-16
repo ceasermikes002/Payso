@@ -26,31 +26,31 @@ export default function DashboardPage() {
   const { data: usdcBalance } = useTokenBalance(CONTRACT_ADDRESSES.USDC, address)
   const { data: eurcBalance } = useTokenBalance(CONTRACT_ADDRESSES.EURC, address)
 
-  // Debug logging
-  useEffect(() => {
-    console.log('=== DASHBOARD DEBUG ===')
-    console.log('Connected address:', address)
-    console.log('Contract employer:', employer)
-    console.log('Employer loading:', employerLoading)
-    console.log('Employer error:', employerError)
-    console.log('Is authorized:', isAuthorized)
-    console.log('Auth loading:', authLoading)
-    console.log('Auth error:', authError)
-    console.log('Contract address:', CONTRACT_ADDRESSES.PayrollEscrow)
-    console.log('Employer type:', typeof employer)
-    console.log('Employer value:', employer)
-    console.log('IsAuthorized type:', typeof isAuthorized)
-    console.log('IsAuthorized value:', isAuthorized)
-    console.log('Address comparison:', address && employer && address.toLowerCase() === (employer as string).toLowerCase())
-    console.log('Final isEmployer logic:', {
-      hasAddress: !!address,
-      hasEmployer: !!employer,
-      isMainEmployer: address && employer && address.toLowerCase() === (employer as string).toLowerCase(),
-      isAuthorizedEmployer: isAuthorized,
-      finalResult: address && employer && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized)
-    })
-    console.log('=======================')
-  }, [address, employer, isAuthorized, employerLoading, authLoading, employerError, authError])
+  // Debug logging - commented out for production
+  // useEffect(() => {
+  //   console.log('=== DASHBOARD DEBUG ===')
+  //   console.log('Connected address:', address)
+  //   console.log('Contract employer:', employer)
+  //   console.log('Employer loading:', employerLoading)
+  //   console.log('Employer error:', employerError)
+  //   console.log('Is authorized:', isAuthorized)
+  //   console.log('Auth loading:', authLoading)
+  //   console.log('Auth error:', authError)
+  //   console.log('Contract address:', CONTRACT_ADDRESSES.PayrollEscrow)
+  //   console.log('Employer type:', typeof employer)
+  //   console.log('Employer value:', employer)
+  //   console.log('IsAuthorized type:', typeof isAuthorized)
+  //   console.log('IsAuthorized value:', isAuthorized)
+  //   console.log('Address comparison:', address && employer && address.toLowerCase() === (employer as string).toLowerCase())
+  //   console.log('Final isEmployer logic:', {
+  //     hasAddress: !!address,
+  //     hasEmployer: !!employer,
+  //     isMainEmployer: address && employer && address.toLowerCase() === (employer as string).toLowerCase(),
+  //     isAuthorizedEmployer: isAuthorized,
+  //     finalResult: address && employer && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized)
+  //   })
+  //   console.log('=======================')
+  // }, [address, employer, isAuthorized, employerLoading, authLoading, employerError, authError])
 
   const isEmployer = address && (employer ? (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized) : fallbackEmployer)
 
@@ -64,35 +64,36 @@ export default function DashboardPage() {
   const totalValue = (paymentIds as any[])?.reduce((sum: number, payment: any) => sum + Number(payment.amount), 0) || 0
 
   // Debug info display
-  const DebugInfo = () => (
-    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6">
-      <h3 className="text-yellow-400 font-semibold mb-2">🔍 Debug Information</h3>
-      <div className="text-xs text-yellow-300 space-y-1">
-        <div>Your Address: {address || 'Not connected'}</div>
-        <div>Contract Employer: {employer || (employerLoading ? 'Loading...' : employerError ? 'Error' : 'Not loaded')}</div>
-        <div>Is Authorized: {isAuthorized === undefined ? (authLoading ? 'Loading...' : 'Not loaded') : isAuthorized.toString()}</div>
-        <div>RPC URL: {process.env.NEXT_PUBLIC_ARC_RPC_URL || 'Default'}</div>
-        <div>Contract Address: {CONTRACT_ADDRESSES.PayrollEscrow}</div>
-        <div>Network: Arc Testnet (5042002)</div>
-        <div>Contract Failed: {contractFailed.toString()}</div>
-        <div>Fallback Employer: {fallbackEmployer.toString()}</div>
-        {employerError && <div className="text-red-400">Employer Error: {employerError.message}</div>}
-        {authError && <div className="text-red-400">Auth Error: {authError.message}</div>}
-        {contractFailed && (
-          <div className="mt-2 p-2 bg-red-500/20 rounded border border-red-500/30">
-            <div className="text-red-400 font-semibold">⚠️ Contract Connection Failed</div>
-            <div className="text-red-300 text-xs">Network or RPC issues detected</div>
-          </div>
-        )}
-        {employer && address && (
-          <div className="mt-2 p-2 bg-yellow-500/20 rounded">
-            <div>Address Match: {(address.toLowerCase() === (employer as string).toLowerCase()).toString()}</div>
-            <div>Final Role: {address && employer && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized) ? 'Employer' : 'Employee'}</div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+  // Debug Info - commented out for production
+  // const DebugInfo = () => (
+  //   <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6">
+  //     <h3 className="text-yellow-400 font-semibold mb-2">🔍 Debug Information</h3>
+  //     <div className="text-xs text-yellow-300 space-y-1">
+  //       <div>Your Address: {address || 'Not connected'}</div>
+  //       <div>Contract Employer: {employer || (employerLoading ? 'Loading...' : employerError ? 'Error' : 'Not loaded')}</div>
+  //       <div>Is Authorized: {isAuthorized === undefined ? (authLoading ? 'Loading...' : 'Not loaded') : isAuthorized.toString()}</div>
+  //       <div>RPC URL: {process.env.NEXT_PUBLIC_ARC_RPC_URL || 'Default'}</div>
+  //       <div>Contract Address: {CONTRACT_ADDRESSES.PayrollEscrow}</div>
+  //       <div>Network: Arc Testnet (5042002)</div>
+  //       <div>Contract Failed: {contractFailed.toString()}</div>
+  //       <div>Fallback Employer: {fallbackEmployer.toString()}</div>
+  //       {employerError && <div className="text-red-400">Employer Error: {employerError.message}</div>}
+  //       {authError && <div className="text-red-400">Auth Error: {authError.message}</div>}
+  //       {contractFailed && (
+  //         <div className="mt-2 p-2 bg-red-500/20 rounded border border-red-500/30">
+  //           <div className="text-red-400 font-semibold">⚠️ Contract Connection Failed</div>
+  //           <div className="text-red-300 text-xs">Network or RPC issues detected</div>
+  //         </div>
+  //       )}
+  //       {employer && address && (
+  //         <div className="mt-2 p-2 bg-yellow-500/20 rounded">
+  //           <div>Address Match: {(address.toLowerCase() === (employer as string).toLowerCase()).toString()}</div>
+  //           <div>Final Role: {address && employer && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized) ? 'Employer' : 'Employee'}</div>
+  //         </div>
+  //       )}
+  //     </div>
+  //   </div>
+  // )
 
   // Quick action handlers
   const handleSchedulePayment = () => {
@@ -114,8 +115,8 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Debug Info */}
-        {isConnected && <DebugInfo />}
+        {/* Debug Info - commented out for production */}
+        {/* {isConnected && <DebugInfo />} */}
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
