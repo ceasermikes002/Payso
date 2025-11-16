@@ -24,7 +24,7 @@ export function EmployeeDashboard() {
   const { claimPayment, isPending, isConfirming, receipt, error } = usePayrollEscrow()
   
   const { data: paymentIds, isLoading: isLoadingIds } = useGetPaymentsByRecipient(
-    address || '0x0000000000000000000000000000000000000000'
+    address && isConnected ? address : undefined
   )
 
   const handleClaimPayment = async (paymentId: bigint) => {

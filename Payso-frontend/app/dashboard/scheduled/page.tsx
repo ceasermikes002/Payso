@@ -11,15 +11,39 @@ import { STABLECOIN_SYMBOLS } from '@/lib/contracts/config'
 export default function ScheduledPage() {
   const { address, isConnected } = useAccount()
   const { data: employer, error: employerError, isError: isEmployerError } = useEmployer()
-  const { data: isAuthorized, error: authError, isError: isAuthError } = useIsAuthorizedEmployer(address || '0x0000000000000000000000000000000000000000')
-  const { data: paymentIds, error: paymentIdsError, isError: isPaymentIdsError, isLoading } = useGetPaymentsByRecipient(address || '0x000000000000000000000000000000000000000000000000')
+  const { data: isAuthorized, error: authError, isError: isAuthError } = useIsAuthorizedEmployer(
+    address && isConnected ? address : undefined
+  )
+  const { data: paymentIds, error: paymentIdsError, isError: isPaymentIdsError, isLoading } = useGetPaymentsByRecipient(
+    address && isConnected ? address : undefined
+  )
   const { data: counter, error: counterError, isError: isCounterError, isLoading: isLoadingCounter } = usePaymentCounter()
 
-  const isEmployer = address && employer && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized)
+  // Enhanced error handling for contract reverts
+  const isContractRevertError = (error: any) => {
+    return error?.message?.includes('reverted') || 
+           error?.message?.includes('Contract Call') ||
+           error?.code === 'CALL_EXCEPTION'
+  }
+
+  // Handle contract revert errors gracefully
+  const safeAuthError = authError && isContractRevertError(authError) ? null : authError
+  const safePaymentIdsError = paymentIdsError && isContractRevertError(paymentIdsError) ? null : paymentIdsError
+  const safeEmployerError = employerError && isContractRevertError(employerError) ? null : employerError
+  const safeCounterError = counterError && isContractRevertError(counterError) ? null : counterError
+
+  // Determine if we should treat as authorized based on address match only (fallback for contract issues)
+  const isMainEmployer = address && employer && address.toLowerCase() === (employer as string).toLowerCase()
+  const isAuthorizedFallback = isMainEmployer || (isConnected && address && isAuthorized === true)
+
+  const isEmployer = address && employer && isConnected && (
+    isMainEmployer || Boolean(isAuthorizedFallback)
+  )
 
   // Debug logging
   console.log('=== SCHEDULED PAGE DEBUG ===')
   console.log('Connected address:', address)
+  console.log('Is connected:', isConnected)
   console.log('Contract employer:', employer)
   console.log('Employer error:', employerError)
   console.log('Is employer error:', isEmployerError)
@@ -67,14 +91,14 @@ export default function ScheduledPage() {
           </div>
         ) : (
           <>
-            {(isEmployer ? (isLoadingCounter || isEmployerError || isAuthError || isCounterError) : (isLoading || isPaymentIdsError)) ? (
+            {(isEmployer ? (isLoadingCounter || isEmployerError || (isConnected && isAuthError) || isCounterError) : (isLoading || (isConnected && isPaymentIdsError))) ? (
               <div className="bg-white/5 border-white/10 flex flex-col gap-6 rounded-xl border py-6 shadow-sm">
                 <div className="px-6 py-12 text-center">
-                  {(isEmployer ? (isEmployerError || isAuthError || isCounterError) : isPaymentIdsError) ? (
+                  {(isEmployer ? (isEmployerError || (isConnected && isAuthError) || isCounterError) : (isConnected && isPaymentIdsError)) ? (
                     <>
                       <h3 className="text-lg font-semibold text-red-400 mb-2">Error Loading Payments</h3>
                       <p className="text-red-400/60 text-sm">
-                        {employerError?.message || authError?.message || counterError?.message || paymentIdsError?.message || 'Failed to load payment data'}
+                        {employerError?.message || (isConnected && authError?.message) || counterError?.message || (isConnected && paymentIdsError?.message) || 'Failed to load payment data'}
                       </p>
                     </>
                   ) : (

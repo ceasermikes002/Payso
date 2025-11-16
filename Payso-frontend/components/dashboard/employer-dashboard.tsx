@@ -27,7 +27,9 @@ export function EmployerDashboard() {
   const { depositAndSchedule, isPending, isConfirming } = usePayrollEscrow()
   const { approve, isPending: isApproving } = useApproveToken()
   const { data: employer } = useEmployer()
-  const { data: isAuthorized } = useIsAuthorizedEmployer(address || '0x0')
+  const { data: isAuthorized } = useIsAuthorizedEmployer(
+    address && isConnected ? address : undefined
+  )
 
   // Set default release date to tomorrow and time to 9:00 AM for better UX
   const getDefaultDateTime = () => {

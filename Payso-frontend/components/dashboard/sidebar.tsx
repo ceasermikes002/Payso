@@ -32,7 +32,9 @@ export function Sidebar() {
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const { data: employer } = useEmployer()
-  const { data: isAuthorized } = useIsAuthorizedEmployer(address || '0x0000000000000000000000000000000000000000')
+  const { data: isAuthorized } = useIsAuthorizedEmployer(
+    address && isConnected ? address : undefined
+  )
   const pathname = usePathname()
   
   // Prevent hydration mismatch by ensuring client-side only rendering

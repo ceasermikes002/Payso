@@ -17,8 +17,12 @@ export default function DashboardPage() {
   const router = useRouter()
   const { address, isConnected } = useAccount()
   const { data: employer, error: employerError, isLoading: employerLoading } = useEmployer()
-  const { data: isAuthorized, error: authError, isLoading: authLoading } = useIsAuthorizedEmployer(address || '0x0000000000000000000000000000000000000000')
-  const { data: paymentIds, isLoading } = useGetPaymentsByRecipient(address || '0x0000000000000000000000000000000000000000')
+  const { data: isAuthorized, error: authError, isLoading: authLoading } = useIsAuthorizedEmployer(
+    address && isConnected ? address : undefined
+  )
+  const { data: paymentIds, isLoading } = useGetPaymentsByRecipient(
+    address && isConnected ? address : undefined
+  )
   const { data: usdcBalance } = useTokenBalance(CONTRACT_ADDRESSES.USDC, address)
   const { data: eurcBalance } = useTokenBalance(CONTRACT_ADDRESSES.EURC, address)
 

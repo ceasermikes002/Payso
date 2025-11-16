@@ -85,12 +85,13 @@ export function useGetPayment(paymentId: bigint) {
   })
 }
 
-export function useGetPaymentsByRecipient(recipient: Address) {
+export function useGetPaymentsByRecipient(recipient?: Address) {
   return useReadContract({
     address: CONTRACT_ADDRESSES.PayrollEscrow,
     abi: PayrollEscrowABI,
     functionName: 'getPaymentsByRecipient',
-    args: [recipient],
+    args: recipient ? [recipient] : undefined,
+    enabled: Boolean(recipient), // Only enable if recipient is provided
   })
 }
 
@@ -128,12 +129,16 @@ export function useEmployer() {
   })
 }
 
-export function useIsAuthorizedEmployer(address: Address) {
+export function useIsAuthorizedEmployer(address?: Address) {
   return useReadContract({
     address: CONTRACT_ADDRESSES.PayrollEscrow,
     abi: PayrollEscrowABI,
     functionName: 'isAuthorizedEmployer',
-    args: [address],
+    args: address ? [address] : undefined,
+    enabled: Boolean(address), // Only enable if address is provided
+    // Add retry configuration to handle temporary network issues
+    retry: 2,
+    retryDelay: 1000,
   })
 }
 

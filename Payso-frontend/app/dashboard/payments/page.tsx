@@ -9,9 +9,13 @@ import { useEmployer, useIsAuthorizedEmployer } from '@/lib/contracts/hooks/useP
 export default function PaymentsPage() {
   const { address, isConnected } = useAccount()
   const { data: employer } = useEmployer()
-  const { data: isAuthorized } = useIsAuthorizedEmployer(address || '0x0000000000000000000000000000000000000000')
+  const { data: isAuthorized } = useIsAuthorizedEmployer(
+    address && isConnected ? address : undefined
+  )
 
-  const isEmployer = address && employer && (address.toLowerCase() === (employer as string).toLowerCase() || isAuthorized)
+  const isEmployer = address && employer && isConnected && (
+    address.toLowerCase() === (employer as string).toLowerCase() || Boolean(isAuthorized)
+  )
 
   return (
     <DashboardLayout>
