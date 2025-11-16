@@ -11,7 +11,11 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    domains: [],
+    remotePatterns: [],
   },
+  assetPrefix: undefined, // Ensure assets are served from root
+  trailingSlash: false, // Ensure proper URL handling
   productionBrowserSourceMaps: false,
   compress: true,
   poweredByHeader: false,

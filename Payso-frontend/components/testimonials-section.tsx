@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card'
 import { Star } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
+import { SafeImage } from '@/components/ui/safe-image'
 
 const testimonials = [
   {
@@ -110,13 +111,12 @@ export function TestimonialsSection() {
                 </div>
                 <p className="text-white/80 mb-6 leading-relaxed">&quot;{testimonial.text}&quot;</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 overflow-hidden">
-                    <img
-                      src={testimonial.avatar || "/placeholder.svg"}
-                      alt={testimonial.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <SafeImage
+                    src={testimonial.avatar || "/placeholder.svg"}
+                    alt={testimonial.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                    fallback="👤"
+                  />
                   <div>
                     <div className="font-semibold text-white">{testimonial.name}</div>
                     <div className="text-sm text-white/60">{testimonial.role}</div>
