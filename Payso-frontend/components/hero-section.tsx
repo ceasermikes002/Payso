@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { MessageSquare, ArrowDown, MousePointer2 } from 'lucide-react'
 import Image from 'next/image'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 
 export function HeroSection() {
@@ -12,7 +12,6 @@ export function HeroSection() {
   const buttonRefs = useRef<HTMLButtonElement[]>([])
   const imageRef = useRef<HTMLDivElement>(null)
   const orbitRef = useRef<HTMLDivElement>(null)
-  const [imageError, setImageError] = useState(false)
 
   useEffect(() => {
     // Create timeline
@@ -185,22 +184,13 @@ export function HeroSection() {
             {/* Central 3D Bank Building */}
             <div ref={imageRef} className="relative z-10 flex items-center justify-center">
               <div className="absolute -inset-16 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 blur-3xl rounded-full"></div>
-              {!imageError ? (
-                <Image
-                  src="/3d-isometric-purple-bank-building-illustration-wit.jpg"
-                  alt="3D Bank Building"
-                  width={400}
-                  height={400}
-                  className="drop-shadow-2xl"
-                  onError={() => setImageError(true)}
-                  priority
-                  loading="eager"
-                />
-              ) : (
-                <div className="w-[400px] h-[400px] bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center drop-shadow-2xl">
-                  <div className="text-white text-6xl">🏦</div>
-                </div>
-              )}
+              <Image
+                src="/3d-isometric-purple-bank-building-illustration-wit.jpg"
+                alt="3D Bank Building"
+                width={400}
+                height={400}
+                className="drop-shadow-2xl"
+              />
             </div>
           </div>
         </div>

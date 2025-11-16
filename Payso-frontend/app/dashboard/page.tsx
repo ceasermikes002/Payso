@@ -58,7 +58,7 @@ export default function DashboardPage() {
   const contractFailed = employerError || authError || (!employer && !employerLoading) || (isAuthorized === undefined && !authLoading)
   const fallbackEmployer = address && (address.toLowerCase() === '0x24f2c1199B390Ffe5de345495eDA04492dc4e12E'.toLowerCase())
 
-  // Calculate stats
+  // Calculate statss
   const totalPayments = (paymentIds as any[])?.length || 0
   const claimablePayments = (paymentIds as any[])?.filter((payment: any) => !payment.claimed && payment.releaseAt * 1000 <= Date.now()).length || 0
   const totalValue = (paymentIds as any[])?.reduce((sum: number, payment: any) => sum + Number(payment.amount), 0) || 0
