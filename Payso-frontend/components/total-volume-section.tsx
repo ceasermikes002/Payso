@@ -9,6 +9,22 @@ function formatAddress(addr?: string) {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`
 }
 
+function roundUpBalance(formattedBalance: string): string {
+  // Extract number and symbol from formatted balance (e.g., "1.2345 ETH")
+  const match = formattedBalance.match(/^([\d.]+)\s*(.*)$/)
+  if (!match) return formattedBalance
+  
+  const [, amountStr, symbol] = match
+  const amount = parseFloat(amountStr)
+  if (isNaN(amount)) return formattedBalance
+  
+  // Round up to 2 decimal places
+  const roundedUp = Math.ceil(amount * 100) / 100
+  
+  // Format back to string with proper decimal places
+  return `${roundedUp.toFixed(2)} ${symbol}`
+}
+
 export function TotalVolumeSection() {
   const { address, isConnected } = useAccount()
   const { data: nativeBalance, isLoading } = useBalance({
@@ -46,7 +62,7 @@ export function TotalVolumeSection() {
                   <div className="h-7 w-40 bg-white/10 rounded animate-pulse"></div>
                 ) : (
                   <p className="text-2xl font-bold text-white">
-                    {isConnected && nativeBalance ? `${nativeBalance.formatted} ${nativeBalance.symbol}` : '—'}
+                    {isConnected && nativeBalance ? roundUpBalance(`${nativeBalance.formatted} ${nativeBalance.symbol}`) : '—'}
                   </p>
                 )}
                 <p className="text-white/40 text-sm">
@@ -104,7 +120,7 @@ export function TotalVolumeSection() {
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 rounded-3xl blur-xl"></div>
           <div className="relative bg-gradient-to-br from-white/5 to-white/0 backdrop-blur-xl border border-white/10 rounded-3xl p-12 text-center">
             <div className="text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 mb-2">
-              {isConnected && nativeBalance ? `${nativeBalance.formatted} ${nativeBalance.symbol}` : 'Connect Wallet'}
+              {isConnected && nativeBalance ? roundUpBalance(`${nativeBalance.formatted} ${nativeBalance.symbol}`) : 'Connect Wallet'}
             </div>
             <div className="text-white/60 text-lg">Wallet Status</div>
           </div>
